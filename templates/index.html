@@ -1,0 +1,521 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crew Ai</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://codepen.io/gymratpacks/pen/VKzBEp#0">
+    <link href='https://fonts.googleapis.com/css?family=Nunito:400,300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="row">
+        <div class="col-md-12">
+            <section>
+                <div class="header">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="">
+                    {% if session.user_id %}
+                    <div> <span style="margin-right: 5px; font-size: 15px;font-weight: bold; cursor: pointer;">Exit
+                            Api</span><i class="fa-solid fa-right-from-bracket" id="clearSessionIcon"
+                            style="cursor: pointer;"></i>
+                    </div>
+                    {% endif %}
+
+                </div> <br><br>
+                <h1> Crew Ai by <a href="https://i8is.com/" target="_blank">I8IS</a> </h1>
+                <p>A streamlined platform for AI-driven crew management, enabling users to efficiently configure agents,
+                    assign tasks and optimize workflow with enhanced control and flexibility.</p>
+
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+                <fieldset style="margin-top:10px">
+                    <legend><span class="number">1</span> API Key</legend>
+                    <p>API key is required for accessing specialized functionalities and services.</p>
+                    {% if not session.user_id %}
+
+                    <form id="api_key_form" action="/save_api_key" method="post">
+                        <label for="api_key">Enter your API key:</label>
+                        <input type="text" id="api_key" name="api_key">
+                    </form>
+                    {% else %}
+                    <label for="api_key">Api key saved!</label>
+                    {% endif %}
+                </fieldset>
+                <br>
+                <fieldset class="menu-main">
+
+                    <div>
+                        <legend><span class="number">2</span>Agents</legend>
+                    </div>
+                    <form action="/import_agents" id="import" method="post" enctype="multipart/form-data"
+                        class="import_agents">
+                        <div><input type="file" name="file" accept=".csv">
+                            <button type="submit" style="background: gray;
+                            border: none;
+                            padding: 5px;
+                            width: 150px;">Import Agents</button>
+                            <i class="fa-solid fa-xmark" onclick="closeimportdiv()"></i>
+                        </div>
+                        <p>choose only csv file must have crew agent attributes.</p>
+                    </form>
+
+                    <form action="/create_agent" method="post">
+                        <label for="role">User Role:</label>
+                        <p>Specify the role of the agent, indicating their position or permissions within the system</p>
+                        <input type="text" id="role" name="role" required>
+
+                        <label for="goal">Goal:</label>
+                        <p>Outline the objective or purpose of the agent, providing clarity on their intended tasks.</p>
+                        <input type="text" id="goal" name="goal" required>
+
+                        <label for="backstory">Back Story:</label>
+                        <p>Provide background information or context regarding the agent, which inform its behavior or
+                            decisions.</p>
+                        <textarea id="backstory" name="backstory" required></textarea>
+                        <br>
+                        <div class="selection">
+                            <div>
+                                <label for="delegation">Allow Delegations:</label>
+                                <p>Choose whether the agent should be allowed to delegate tasks to others or not.</p>
+                                <input type="radio" name="allow_delegation" value="yes" required>Yes
+                                <input type="radio" name="allow_delegation" value="no" required>No
+                            </div>
+
+                            <div class="verbose-div">
+                                <label for="verbose">Verbose:</label>
+                                <p>Setting that controls the level of detail in the output between a concise or verbose
+                                    mode.</p>
+                                <input type="radio" name="verbose" value="yes" required>Yes
+                                <input type="radio" name="verbose" value="no" required>No
+                            </div>
+                        </div>
+                        <br>
+                        <button type="submit" class="short-btn">ADD AGENT</button>
+                    </form>
+                    <div id="agent_menu" class="menu">
+                        <ul>
+                            <li onclick="openimportdiv()"><i class="fa-solid fa-upload uploads_icon"></i>Import
+                                Agents</li>
+                            <li><i class="fa-solid fa-download uploads_icon"></i><a href="/export_agents">Export
+                                    Agents</a></li>
+                        </ul>
+                    </div>
+                    <br>
+                </fieldset>
+
+                <fieldset style="margin-top:10px">
+
+                    <legend><span class="number">3</span>Create Task</legend>
+                    <form action="/create_task" method="post">
+                        <label for="selected_agent">Select Agent:</label>
+                        <p>Choose any One agent from list of available agents for task assignment.</p>
+                        <select name="selected_agent" id="selected_agent" onchange="fetchAgentDetails()">
+                            <option value="">Select an Agent</option>
+
+                            {% for agent in agents %}
+                            <option value="{{ agent.id }}" data-role="{{ agent.role }}" data-goal="{{ agent.goal }}"
+                                data-verbose="{{ agent.verbose }}" data-backstory="{{ agent.backstory }}"
+                                data-allow-delegation="{{ agent.allow_delegation }}">{{ agent.role }}</option>
+                            {% endfor %}
+                        </select>
+                        <div id="agentDetails"></div> <br>
+
+                        <label for="task_name">Task Name:</label>
+                        <p>Enter a descriptive name for the task, adding in its identification and organization.</p>
+                        <input type="text" id="task_name" name="task_name" required>
+
+                        <label for="task_description">Task Description:</label>
+                        <p>Enter a detailed explanation or instructions for the task, ensuring clarity and
+                            understanding.</p>
+                        <textarea id="task_description" name="task_description" style="margin-bottom: 10px;"
+                            required></textarea>
+                        <br>
+                        <button class="short-btn">ADD TASK</button>
+                    </form>
+                </fieldset>
+                <fieldset style="margin-top:10px">
+                    <legend><span class="number">4</span>Task Management</legend>
+                    <form id="taskForm" action="" method="post">
+                        <p>Click Task box from Task Management in the order you want them to be executed, depending on
+                            priority.</p>
+                        <div>
+                            <ol id="sortable-list">
+                                {% for task in tasks %}
+                                {% for agent in agents %}
+                                {% if agent.id == task.agent_id %}
+                                <li id="{{ task.id }}" onclick="addexecuteTask('{{ task.id }}')">
+                                    <div class="sort-div">
+                                        <span style="font-weight: bold;">{{ agent.role }}:</span><br>
+                                        <div>
+                                            <i class="fa-solid fa-trash" onclick="deleteTask('{{ task.id }}')"></i>
+                                        </div>
+                                    </div>
+                                    <span>{{ task.task_name }}</span>
+                                    <p style="">{{ task.task_description }}</p>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+                                {% endfor %}
+
+                            </ol>
+                            "Click" on the Task box to add in execution order.
+
+                        </div>
+                    </form>
+
+                </fieldset>
+                <fieldset style="margin-top:10px">
+                    <legend><span class="number">5</span>Execution Order</legend>
+                    <form id="taskForm" action="/execute_tasks" method="post">
+                        <div>
+                            <ol id="sortable-list">
+                                {% for task in execute_task %}
+                                {% for agent in agents %}
+                                {% if agent.id == task.agent_id %}
+                                <li id="{{ task.id }}">
+                                    <div class="sort-div">
+                                        <span style="font-weight: bold;">{{ agent.role }}:</span><br>
+                                        <div>
+
+                                            <i class="fa-solid fa-trash" onclick="edeleteTask('{{ task.id }}')"></i>
+                                        </div>
+                                    </div>
+                                    <span>{{ task.task_name }}</span>
+
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+                                {% endfor %}
+                            </ol>
+                        </div>
+
+
+                        <legend><span class="number">6</span>Verbose Output Option</legend>
+                        <div class="Verbose-option">
+                            <input type="radio" name="output_option" value="Console">File Download <p>By downloading you
+                                will get .py file, final answer file, verbose output
+                            </p>
+                            <input type="radio" name="output_option" value="Text" checked>Console/Text Output <p>
+                                Displays output on screen
+                            </p>
+                            <input type="radio" name="output_option" value="Both">Both <p>You will get both output on
+                                screen and .py file, final answer file, verbose output</p>
+                        </div>
+                        <br>
+                        <button id="executed" type="button" onclick="executeTasks()">EXECUTE</button>
+                    </form>
+                    <div id="result"></div>
+
+                </fieldset>
+                <br>
+
+            </section>
+        </div>
+    </div>
+
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    function addexecuteTask(taskId) {
+        $.ajax({
+            type: "POST",
+            url: "/addexecuteTask",
+            contentType: "application/json",
+            data: JSON.stringify({ task_id: taskId }),
+            success: function (response) {
+                // Handle success response if needed
+                alert("Task added for execution!");
+                window.location.reload();
+            },
+            error: function (error) {
+                console.error('Error executing task:', error);
+            }
+        });
+
+    }
+
+</script>
+<script>
+    function openimportdiv() {
+        // console.log(hello)
+        var importdiv = document.getElementById('import');
+        var agent_menu = document.getElementById('agent_menu');
+
+
+        if (importdiv.style.display === 'none') {
+            importdiv.style.display = 'block';
+            agent_menu.style.display = 'none';
+        } else {
+            importdiv.style.display = 'none';
+            agent_menu.style.display = 'block';
+        }
+    }
+    function closeimportdiv() {
+        var importdiv = document.getElementById('import');
+        var agent_menu = document.getElementById('agent_menu');
+
+        if (importdiv.style.display === 'block') {
+            importdiv.style.display = 'none';
+            agent_menu.style.display = 'block';
+
+        }
+    }
+    function fetchAgentDetails() {
+        console.log("Event triggered!");  // Check if this gets logged
+        var selectedAgent = document.getElementById('selected_agent');
+        var agentDetailsDiv = document.getElementById('agentDetails');
+
+        var selectedIndex = selectedAgent.selectedIndex;
+        if (selectedIndex === 0) {
+            // Clear agent details if no agent is selected
+            agentDetailsDiv.innerHTML = '';
+            return;
+        }
+
+        var selectedOption = selectedAgent.options[selectedIndex];
+        var role = selectedOption.getAttribute('data-role');
+        var goal = selectedOption.getAttribute('data-goal');
+        var verbose = selectedOption.getAttribute('data-verbose');
+        var backstory = selectedOption.getAttribute('data-backstory');
+        var allowDelegation = selectedOption.getAttribute('data-allow-delegation');
+
+        // Fetch task details for the selected agent
+        var agentId = selectedOption.value;
+        fetch('/get_agent_tasks?agent_id=' + agentId)
+            .then(response => response.json())
+            .then(data => {
+                var taskDetails = '';
+                if (data.tasks.length > 0) {
+                    taskDetails = '<h4>Assigned Tasks:-</h4>';
+                    data.tasks.forEach(task => {
+                        taskDetails += '<p><strong>Task Name:</strong> ' + task.task_name + '</p>' +
+                            '<p><strong>Task Description:</strong> ' + task.task_description + '</p>';
+                    });
+                } else {
+                    taskDetails = '<h4>Assigned Tasks:-</h4>'
+                    taskDetails += '<p><strong>There is no task for this agent!</strong>';
+
+                }
+                // Display agent and task details
+                agentDetailsDiv.innerHTML = '<h3>Agent Details</h3>' +
+                    '<p><strong>Role:</strong> ' + role + '</p>' +
+                    '<p><strong>Goal:</strong> ' + goal + '</p>' +
+                    '<p><strong>Backstory:</strong> ' + backstory + '</p>' +
+                    '<p><strong>Verbose:</strong> ' + verbose + '</p>' +
+                    '<p><strong>Allow Delegation:</strong> ' + allowDelegation + '</p>' +
+                    taskDetails;
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var clearSessionIcon = document.getElementById("clearSessionIcon");
+        if (clearSessionIcon) {
+            clearSessionIcon.addEventListener("click", function () {
+                // Clear session data
+                fetch('/clear_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                }).then(response => {
+                    if (response.ok) {
+                        // Reload the page after clearing session
+                        window.location.reload();
+                    } else {
+                        alert('Failed to clear session.');
+                    }
+                }).catch(error => {
+                    console.error('Error clearing session:', error);
+                    alert('An error occurred while clearing session.');
+                });
+            });
+        }
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+        var form = document.getElementById("api_key_form");
+        var apiKeyInput = document.getElementById("api_key");
+
+        apiKeyInput.addEventListener("blur", validateAndSubmit);
+        apiKeyInput.addEventListener("keypress", function (event) {
+            if (event.keyCode === 13) {
+                event.preventDefault()
+            }
+        });
+
+        function validateAndSubmit() {
+            var apiKey = apiKeyInput.value;
+
+
+            if (/^sk.{40,}$/.test(apiKey)) {
+                form.submit();
+            } else {
+                alert("Please enter a valid API key in the format 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.");
+                setTimeout(function () {
+                    apiKeyInput.value = "";
+                }, 0);
+            }
+        }
+    });
+
+
+
+</script>
+<script>
+    function executeTasks() {
+        var taskOrder = [];
+        $("#sortable-list li").each(function () {
+            taskOrder.push($(this).attr('id'));
+        });
+
+        var outputOption = $("input[name='output_option']:checked").val();
+
+        var executeButton = document.querySelector("button[type=button]");
+        executeButton.disabled = true;
+        executeButton.textContent = 'Executing...';
+
+        $.ajax({
+            type: "POST",
+            url: "/execute_tasks",
+            contentType: "application/json",
+            data: JSON.stringify({
+                task_order: taskOrder,
+                output_option: outputOption
+            }),
+            success: function (response) {
+                executeButton.disabled = false;
+                executeButton.textContent = 'Execute';
+                if (response.output_option === "Console") {
+                    downloadZip(response.encoded_zip);
+                } else if (response.output_option === "Text") {
+                    document.getElementById('result').innerText = response.result;
+                } else if (response.output_option === "Both") {
+                    document.getElementById('result').innerText = response.result;
+                    downloadZip(response.encoded_zip);
+                }
+
+            },
+            error: function (error) {
+                alert("Api Key not responding")
+                console.log(error);
+
+                executeButton.disabled = false;
+                executeButton.textContent = 'Execute';
+            }
+        });
+    }
+
+
+    function deleteTask(taskId) {
+        event.stopPropagation();
+        if (confirm("Are you sure you want to delete this task permanently?")) {
+            // Perform AJAX request to delete the task
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/delete_task', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        location.reload(); // Reload the page for simplicity
+                    } else {
+                        // Error occurred while deleting task
+                        console.error('Error deleting task:', xhr.responseText);
+                    }
+                }
+            };
+            xhr.send('task_id=' + encodeURIComponent(taskId));
+        }
+    }
+
+
+    function edeleteTask(taskId) {
+        // Perform AJAX request to delete the task
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/edelete_task', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    // Task deleted successfully
+                    // Reload the page or update the UI as needed
+                    location.reload(); // Reload the page for simplicity
+                } else {
+                    // Error occurred while deleting task
+                    console.error('Error deleting task:', xhr.responseText);
+                }
+            }
+        };
+        xhr.send('task_id=' + encodeURIComponent(taskId));
+
+    }
+    function reassign(taskId, agentId) {
+        console.log(taskId, agentId)
+        if (confirm("Do you sure you want to reassign this task?")) {
+            // Perform AJAX request to reassign the task
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/reassign_task', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        location.reload(); // Reload the page for simplicity
+                    } else {
+                        // Error occurred while reassigning the task
+                        console.error('Error reassigning the task:', xhr.responseText);
+                    }
+                }
+            };
+            xhr.send('task_id=' + encodeURIComponent(taskId) + '&new_agent_id=' + encodeURIComponent(agentId));
+        }
+    }
+</script>
+
+<script>
+    function downloadZip(encodedZip) {
+        const zipBlob = base64ToBlob(encodedZip, 'application/zip');
+        const url = window.URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'results_and_code.zip';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+    }
+
+    function base64ToBlob(base64, mimeType) {
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], { type: mimeType });
+    }
+</script>
+
+</html>
